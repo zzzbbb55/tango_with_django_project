@@ -68,18 +68,20 @@ def show_category(request, category_name_slug):
     # Go render the response and return it to the client.
     return render(request, 'rango/category.html', context=context_dict)
 
-def show_page(request, page_name_slug):
-    context_dict = {}
+# def show_page(request, page_name_slug):
+#     context_dict = {}
 
-    try:
-        page = Page.objects.get(slug=page_name_slug)
-        pages = Page.objects.filter(page=page)
-        context_dict['pages'] = pages
-    except Category.DoesNotExist:
-        context_dict['pages'] = None
+#     try:
+#         page = Page.objects.get(slug=page_name_slug)
+#         pages = Page.objects.filter(page=page)
+#         context_dict['pages'] = pages
 
-    return render(request, 'rango/page.html', context=context_dict)
+#     except Category.DoesNotExist:
+#         context_dict['pages'] = None
 
+#     return render(request, 'rango/page.html', context=context_dict)
+
+@login_required
 def add_category(request):
     form = CategoryForm()
     # A HTTP POST?
@@ -91,23 +93,22 @@ def add_category(request):
             form.save(commit=True)
             # Now that the category is saved, we could confirm this.
             # For now, just redirect the user back to the index view.
-            return redirect('/rango/')
+            return redirect(reverse('rango:index'))
         else:
-            # The supplied form contained errors -
-            # just print them to the terminal.
             print(form.errors)
     # Will handle the bad form, new form, or no form supplied cases.
     # Render the form with error messages (if any).
     return render(request, 'rango/add_category.html', {'form': form})
 
+@login_required
 def add_page(request, category_name_slug):
     try:
         category = Category.objects.get(slug=category_name_slug)
-    except Category.DoesNotExist:
+    except:
         category = None
     # You cannot add a page to a Category that does not exist...
     if category is None:
-        return redirect('/rango/')
+        return redirect(reverse('rango:index'))
 
     form = PageForm()
 
@@ -221,7 +222,7 @@ def user_login(request):
         else:
         # Bad login details were provided. So we can't log the user in.
             print(f"Invalid login details: {username}, {password}")
-        return HttpResponse("Invalid login details supplied.")
+            return HttpResponse("Invalid login details supplied.")
     # The request is not a HTTP POST, so display the login form.
     # This scenario would most likely be a HTTP GET.
     else:
@@ -237,7 +238,7 @@ def some_view(request):
 
 @login_required
 def restricted(request):
-    return HttpResponse("Since you're logged in, you can see this text!")
+    return render(request,'rango/restricted.html')
 
 @login_required
 def user_logout(request):
